@@ -5,12 +5,10 @@ module.exports = async function handler(req, res) {
   const WF_COLLECTION = process.env.WEBFLOW_COLLECTION_ID;
 
   try {
-    // 1. Récupérer les biens depuis WordPress
     const wpRes = await fetch('https://ebimmo.com/wp-json/ebimmo/v1/properties');
     const properties = await wpRes.json();
 
-    // 2. Récupérer les items existants dans Webflow
-    const existingRes = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items`, {
+    const existingRes = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items?limit=100`, {
       headers: {
         'Authorization': `Bearer ${WF_TOKEN}`,
         'accept': 'application/json'
@@ -19,9 +17,9 @@ module.exports = async function handler(req, res) {
     const existing = await existingRes.json();
     const existingRefs = existing.items?.map(i => i.fieldData?.reference) || [];
 
-    // 3. Ajouter seulement les nouveaux biens
     const results = [];
-    for (const p of properties.slice(0, 5)) { // test avec 5 biens
+
+    for (const p of properties.slice(0, 5)) {
       if (existingRefs.includes(p.reference)) {
         results.push({ reference: p.reference, status: 'already exists' });
         continue;
@@ -39,7 +37,7 @@ module.exports = async function handler(req, res) {
           rooms: parseInt(p.rooms) || 0,
           reference: p.reference,
           'property-url': p.url,
-          'image-url': p.thumbnail || '',
+          'image-url': p.thumbnail || ''
         }
       };
 
@@ -50,4 +48,16 @@ module.exports = async function handler(req, res) {
           'Content-Type': 'application/json',
           'accept': 'application/json'
         },
-        bo
+        body: JSON.stringify(body)
+      });
+
+      const created = await createRes.json();
+      results.push({ reference: p.reference, status: createRes.status, response: created });
+    }
+
+    return res.status(200).json({ success: true, processed: results });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+}
