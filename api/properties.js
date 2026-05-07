@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
   const credentials = Buffer.from(`${PROVIDER_ID}:${TOKEN}`).toString('base64');
 
   // On liste les agences pour trouver le bon ID
-  const url = `https://api.apimo.pro/providers/${PROVIDER_ID}/agencies`;
+  const url = `https://api.apimo.pro/providers`;
 
   try {
     const apiRes = await fetch(url, {
