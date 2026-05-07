@@ -3,6 +3,7 @@ module.exports = async function handler(req, res) {
 
   const WF_TOKEN = process.env.WEBFLOW_TOKEN;
   const WF_COLLECTION = process.env.WEBFLOW_COLLECTION_ID;
+  const WF_SITE = process.env.WEBFLOW_SITE_ID;
 
   try {
     const wpRes = await fetch('https://ebimmo.com/wp-json/ebimmo/v1/properties');
@@ -19,7 +20,7 @@ module.exports = async function handler(req, res) {
 
     const results = [];
 
-    for (const p of properties.slice(0, 5)) {
+    for (const p of properties.slice(0, 3)) {
       if (existingNames.includes(p.title)) {
         results.push({ title: p.title, status: 'already exists' });
         continue;
@@ -35,17 +36,18 @@ module.exports = async function handler(req, res) {
           'prix-de-la-propriete': price,
           'surface-m2': Math.round(area),
           'nombre-de-chambres': parseInt(p.rooms) || 0,
-          'emplacement-de-la-propriete': p.title.includes('CAEN') ? 'Caen' : 'Normandie',
+          'emplacement-de-la-propriete': 'Normandie',
           'details-de-la-propriete': `${p.rooms} pièces - ${Math.round(area)}m²`,
         }
       };
 
-      const createRes = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items`, {
+      const createRes = await fetch(`https://api.webflow.com/v2/collections/${WF_COLLECTION}/items?live=true`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${WF_TOKEN}`,
           'Content-Type': 'application/json',
-          'accept': 'application/json'
+          'accept': 'application/json',
+          'x-webflow-site': WF_SITE
         },
         body: JSON.stringify(body)
       });
