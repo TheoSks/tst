@@ -9,23 +9,26 @@ module.exports = async function handler(req, res) {
   const AGENCY_ID   = process.env.APIMO_AGENCY_ID;
   const TOKEN       = process.env.APIMO_TOKEN;
 
-  const credentials = Buffer.from(`${TOKEN}:`).toString('base64');
+  // Apimo attend : provider_id:token
+  const credentials = Buffer.from(`${PROVIDER_ID}:${TOKEN}`).toString('base64');
 
   const { page = 1, limit = 12 } = req.query;
   const url = `https://api.apimo.pro/providers/${PROVIDER_ID}/agencies/${AGENCY_ID}/properties?limit=${limit}&page=${page}`;
 
   try {
     const apiRes = await fetch(url, {
+      method: 'GET',
       headers: {
         'Authorization': `Basic ${credentials}`,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-API-TOKEN': TOKEN
       }
     });
 
     const data = await apiRes.json();
 
     return res.status(200).json({
-      debug: { http_status: apiRes.status, url },
+      debug: { http_status: apiRes.status, url, auth: `${PROVIDER_ID}:***` },
       response: data
     });
 
