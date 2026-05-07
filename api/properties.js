@@ -9,8 +9,8 @@ export default async function handler(req, res) {
   const AGENCY_ID   = process.env.APIMO_AGENCY_ID;
   const TOKEN       = process.env.APIMO_TOKEN;
 
-  // Apimo Basic Auth : login = provider_id, password = token
-  const credentials = Buffer.from(`${PROVIDER_ID}:${TOKEN}`).toString('base64');
+  // Token seul sans username
+  const credentials = Buffer.from(`${TOKEN}:`).toString('base64');
 
   const { page = 1, limit = 12 } = req.query;
   const url = `https://api.apimo.pro/providers/${PROVIDER_ID}/agencies/${AGENCY_ID}/properties?limit=${limit}&page=${page}`;
@@ -27,10 +27,4 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       debug: { http_status: apiRes.status, url, token_length: TOKEN?.length },
-      response: data
-    });
-
-  } catch (err) {
-    return res.status(500).json({ error: 'Proxy error', message: err.message });
-  }
-}
+      response
