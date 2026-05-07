@@ -15,13 +15,13 @@ module.exports = async function handler(req, res) {
       }
     });
     const existing = await existingRes.json();
-    const existingRefs = existing.items?.map(i => i.fieldData?.reference) || [];
+    const existingNames = existing.items?.map(i => i.fieldData?.['nom-du-bien']) || [];
 
     const results = [];
 
     for (const p of properties.slice(0, 5)) {
-      if (existingRefs.includes(p.reference)) {
-        results.push({ reference: p.reference, status: 'already exists' });
+      if (existingNames.includes(p.title)) {
+        results.push({ title: p.title, status: 'already exists' });
         continue;
       }
 
@@ -30,14 +30,13 @@ module.exports = async function handler(req, res) {
 
       const body = {
         fieldData: {
-          name: p.title,
-          slug: p.reference,
-          price: price,
-          surface: Math.round(area),
-          rooms: parseInt(p.rooms) || 0,
-          reference: p.reference,
-          'property-url': p.url,
-          'image-url': p.thumbnail || ''
+          'nom-du-bien': p.title,
+          'slug': p.reference,
+          'prix-de-la-propriete': price,
+          'surface-m2': Math.round(area),
+          'nombre-de-chambres': parseInt(p.rooms) || 0,
+          'emplacement-de-la-propriete': p.title.includes('CAEN') ? 'Caen' : 'Normandie',
+          'details-de-la-propriete': `${p.rooms} pièces - ${Math.round(area)}m²`,
         }
       };
 
@@ -52,7 +51,7 @@ module.exports = async function handler(req, res) {
       });
 
       const created = await createRes.json();
-      results.push({ reference: p.reference, status: createRes.status, response: created });
+      results.push({ title: p.title, status: createRes.status, response: created });
     }
 
     return res.status(200).json({ success: true, processed: results });
