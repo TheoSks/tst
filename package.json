@@ -1,0 +1,6 @@
+{
+  "name": "apimo-proxy",
+  "version": "1.0.0",
+  "description": "Proxy Vercel pour l'API Apimo",
+  "private": true
+}
